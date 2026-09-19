@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: fintwin-postgres
+    environment:
+      POSTGRES_USER: fintwin
+      POSTGRES_PASSWORD: fintwin
+      POSTGRES_DB: fintwin
+    ports:
+      - "5432:5432"
+    volumes:
+      - fintwin_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fintwin"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    container_name: fintwin-backend
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://fintwin:fintwin@postgres:5432/fintwin
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./backend:/code
+    profiles: ["full"]
+
+volumes:
+  fintwin_pgdata:

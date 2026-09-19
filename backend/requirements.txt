@@ -1,0 +1,30 @@
+# Core API
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.0
+python-multipart==0.0.20
+
+# Quant / simulation
+numpy==2.2.1
+pandas==2.2.3
+scipy==1.15.0
+
+# Data layer
+sqlalchemy==2.0.36
+psycopg[binary]==3.2.3
+alembic==1.14.0
+yfinance==0.2.51
+
+# ML
+scikit-learn==1.6.0
+
+# Agent / LLM
+anthropic==0.42.0
+pdfplumber==0.11.4
+
+# Dev
+pytest==8.3.4
+pytest-cov==6.0.0
+httpx==0.28.1
+ruff==0.8.4

@@ -1,0 +1,25 @@
+[project]
+name = "fintwin"
+version = "0.1.0"
+description = "Explainable AI personal finance intelligence & simulation system"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = [
+    "B008",   # FastAPI Depends()/File() in defaults is the documented idiom
+    "UP042",  # (str, Enum) is the FastAPI/pydantic idiom; StrEnum changes JSON output
+]
+
+[tool.ruff.lint.per-file-ignores]
+"app/schemas/*" = ["F401"]  # re-exports
+"tests/*" = ["E501"]

@@ -1,0 +1,19 @@
+[
+  {
+    "question": "What happens if markets fall 30%?",
+    "expected_tool": "run_scenario",
+    "note": "Seed case. Member 6: grow this to 30-50 labelled questions covering every tool."
+  },
+  {
+    "question": "Am I too concentrated in IT stocks?",
+    "expected_tool": "analyze_portfolio"
+  },
+  {
+    "question": "What if I stop my SIP for six months?",
+    "expected_tool": "run_scenario"
+  },
+  {
+    "question": "How am I doing financially overall?",
+    "expected_tool": "compute_health_score"
+  }
+]
