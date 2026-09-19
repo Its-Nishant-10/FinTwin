@@ -20,7 +20,7 @@ yfinance==0.2.51
 scikit-learn==1.6.0
 
 # Agent / LLM
-anthropic==0.42.0
+anthropic==1.7.0
 pdfplumber==0.11.4
 
 # Dev

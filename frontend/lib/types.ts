@@ -104,17 +104,60 @@ export interface ScenarioResult {
     target_amount: number;
     success_probability: number;
     median_shortfall: number;
+    evaluated_at_month?: number | null;
+    /** Goal Failure Analysis: additive shares of (target - median outcome). */
+    shortfall_drivers: Record<string, number>;
+    required_monthly_contribution?: number | null;
   }[];
   cash_runway_months?: number | null;
+}
+
+export interface ScenarioComparison {
+  baseline: ScenarioResult;
+  alternatives: ScenarioResult[];
+  deltas: Record<string, number>;
+}
+
+export interface Evidence {
+  claim: string;
+  source: string;
+  snippet?: string | null;
+  confidence?: number | null;
 }
 
 export interface AgentResponse {
   answer: {
     summary: string;
+    assumptions?: Assumptions | null;
     numbers: Record<string, unknown>;
+    evidence: Evidence[];
     caveats: string[];
   };
-  tool_calls: { tool: string; reasoning?: string | null }[];
-  tool_results: { tool: string; ok: boolean; error?: string | null }[];
+  tool_calls: { tool: string; arguments: Record<string, unknown>; reasoning?: string | null }[];
+  tool_results: {
+    tool: string;
+    ok: boolean;
+    /** { summary, detail } — detail holds the full typed result for charts. */
+    output: Record<string, unknown>;
+    error?: string | null;
+  }[];
+  evidence: Evidence[];
   latency_ms?: number | null;
+}
+
+export interface ExtractedField {
+  field: string;
+  value: unknown;
+  confidence: number;
+  source_page?: number | null;
+  /** Flip to false when the user confirms the value. */
+  needs_confirmation: boolean;
+}
+
+export interface DocumentExtraction {
+  filename: string;
+  doc_type: string;
+  fields: ExtractedField[];
+  proposed_profile?: FinancialProfile | null;
+  warnings: string[];
 }

@@ -30,6 +30,7 @@ from app.schemas.profile import (
     RiskConstraints,
 )
 from app.schemas.scenario import (
+    AllocationChangeParams,
     ContributionChangeParams,
     IncomeShockParams,
     MarketStressParams,
@@ -56,6 +57,7 @@ __all__ = [
     "ConcentrationMetrics",
     "PortfolioMetrics",
     "RiskMetrics",
+    "AllocationChangeParams",
     "ContributionChangeParams",
     "IncomeShockParams",
     "MarketStressParams",

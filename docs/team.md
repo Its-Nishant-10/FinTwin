@@ -67,15 +67,28 @@ An honest "the baseline won" is a perfectly good result and belongs in the repor
 **Owns:** `backend/app/agent/`, `backend/app/api/routes/agent.py`, `documents.py`
 **Deliverable:** agent orchestration
 
-The keyword router in `orchestrator.select_tools()` works today. Replace it with real
-tool calling — but keep it as the fallback when `ANTHROPIC_API_KEY` is missing, so the
-demo never hard-fails.
+**Status: complete.** See the "Agent pipeline" section of [architecture.md](architecture.md).
 
-- [ ] LLM tool calling against `tools.to_llm_schema()`
-- [ ] `explain()` — system prompt must forbid inventing numbers; copy figures through
-- [ ] Register the remaining tools in `TOOL_REGISTRY`
-- [ ] `extraction.extract()` — PDF → structured fields, all `needs_confirmation=True`
-- [ ] `research.research()` — retrieval with real sources attached
+- [x] LLM tool calling (`orchestrator.py`, `llm.py`), with refusal fallback and
+      deterministic fallback on any API failure
+- [x] Grounding check: the LLM's prose is discarded if it cites a figure no tool
+      produced (`grounding.py`)
+- [x] All 8 tools registered with JSON schemas (`tools.py`); `forecast_volatility`
+      reports "not built yet" until Member 3 ships it
+- [x] Keyword router that also extracts arguments (`router.py`), the benchmark baseline
+- [x] Document extraction: CSV by column, text/PDF via LLM structured output with
+      every figure checked against the source, regex fallback; `/documents/confirm`
+      applies only user-confirmed fields (`extraction.py`)
+- [x] Research: TF-IDF retrieval over `agent/knowledge/*.md`, every passage sourced
+      (`research.py`)
+
+Still open:
+- [ ] The knowledge base is small and hand-written; historical figures in
+      `drawdowns.md` are approximate and should be checked against NSE data
+- [ ] Retrieval is lexical; swap `_Index` for embeddings if time allows
+- [ ] Scanned PDFs need OCR (not supported)
+- [ ] Measure the real-LLM path: tool-selection accuracy vs. `router.select_tools`,
+      grounding-check hit rate, latency (with Member 6)
 
 The one rule: **the model picks tools and writes prose. It never computes.**
 
@@ -85,14 +98,22 @@ The one rule: **the model picks tools and writes prose. It never computes.**
 **Owns:** `backend/app/simulation/`, `backend/tests/simulation/`
 **Deliverable:** scenario engine
 
-Baseline and market-stress Monte Carlo work end to end. Build out from there.
+**Status: complete.** See "Simulation model" in [architecture.md](architecture.md).
 
-- [ ] `ALLOCATION_CHANGE` scenario (needs Member 1's correlation matrix)
-- [ ] Goal Failure Analysis — attribute shortfall across contributions, market path,
-      starting corpus and pauses. This is a genuinely distinctive feature; give it time.
-- [ ] Market-stress recovery paths (`recovery_months`)
-- [ ] Better return model: fat tails or a block bootstrap over real history
-- [ ] Keep every scenario reproducible at `seed=42` — the benchmark depends on it
+- [x] `ALLOCATION_CHANGE`: both sides use asset-class assumptions
+      (`simulation/assumptions.py`), not Member 1's correlation matrix, so it isn't blocked
+- [x] Goal Failure Analysis: exact Shapley attribution of the shortfall across the
+      baseline plan and each perturbation, plus the SIP needed to close it
+- [x] Market-stress recovery paths (`recovery_months`)
+- [x] Fat-tailed returns (`return_model="student_t"`)
+- [x] Income shocks limited by actual cash flow; goals scored at their own horizon
+- [x] `/scenario/whatif` (auto baseline) and 422s instead of 500s for bad input
+- [x] Every scenario reproducible at `seed=42`, pinned by tests
+
+Still open:
+- [ ] Block bootstrap from real price history (needs Member 2's `get_price_history`)
+- [ ] Replace the illustrative asset-class assumptions with estimates from real data
+- [ ] Regime-conditioned volatility (with Member 3)
 
 ---
 

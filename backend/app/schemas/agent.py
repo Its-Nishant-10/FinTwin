@@ -83,3 +83,15 @@ class DocumentExtraction(BaseModel):
     fields: list[ExtractedField] = Field(default_factory=list)
     proposed_profile: FinancialProfile | None = None
     warnings: list[str] = Field(default_factory=list)
+
+
+class ConfirmExtractionRequest(BaseModel):
+    """The user's reviewed extraction, applied onto their current profile.
+
+    Only fields the user confirmed (needs_confirmation=False) are applied; the
+    rest are ignored. The UI flips the flag when the user ticks a field, and may
+    edit `value` first.
+    """
+
+    profile: FinancialProfile
+    fields: list[ExtractedField]

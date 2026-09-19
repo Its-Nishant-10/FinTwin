@@ -24,7 +24,13 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+psycopg://fintwin:fintwin@localhost:5432/fintwin"
 
     anthropic_api_key: str | None = None
-    llm_model: str = "claude-sonnet-5"
+    llm_model: str = "claude-opus-5"
+    # Routing and explaining is chat-shaped work; "medium" keeps latency down.
+    llm_effort: str = "medium"
+    llm_max_tokens: int = 16_000
+    # Off -> the agent always uses the deterministic keyword router.
+    agent_use_llm: bool = True
+    agent_max_turns: int = 6
 
     market_data_provider: str = "yfinance"
     market_data_api_key: str | None = None

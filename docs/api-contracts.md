@@ -16,11 +16,16 @@ same PR as any schema change.
 | PUT | `/profile/{user_id}` | `FinancialProfile` → `FinancialProfile` | 2 | ✅ in-memory |
 | POST | `/portfolio/analyze` | `FinancialProfile` → `PortfolioMetrics` | 1 | 🟡 allocation + concentration done |
 | POST | `/portfolio/health-score` | `FinancialProfile` → `HealthScore` | 1 | 🟡 liquidity only |
-| POST | `/scenario/run` | `ScenarioRequest` → `ScenarioResult` | 5 | 🟡 baseline + stress done |
+| POST | `/scenario/run` | `ScenarioRequest` → `ScenarioResult` | 5 | ✅ |
+| POST | `/scenario/whatif` | `ScenarioRequest` → `ScenarioComparison` (auto baseline) | 5 | ✅ |
 | POST | `/scenario/compare` | `ScenarioRequest[]` → `ScenarioComparison` | 5 | ✅ |
-| POST | `/agent/ask` | `AgentRequest` → `AgentResponse` | 4 | 🟡 keyword routing, no LLM |
+| POST | `/agent/ask` | `AgentRequest` → `AgentResponse` | 4 | ✅ LLM + deterministic fallback |
 | GET | `/agent/tools` | → tool registry | 4 | ✅ |
-| POST | `/documents/extract` | multipart → `DocumentExtraction` | 4 | ⬜ stub |
+| POST | `/documents/extract` | multipart (PDF/CSV/text) → `DocumentExtraction` | 4 | ✅ |
+| POST | `/documents/confirm` | `ConfirmExtractionRequest` → `FinancialProfile` | 4 | ✅ |
+
+Scenario errors come back as `422` with a readable `detail` (e.g. a `market_stress`
+scenario without `market_stress` params); parts that aren't built yet return `501`.
 
 ## Core types
 
@@ -44,7 +49,15 @@ settings { n_paths, seed, percentiles }
 market_stress        { shock_pct, shock_at_month, recovery_months }
 income_shock         { income_multiplier, duration_months, start_month }
 contribution_change  { new_monthly_contribution, pause_months, pause_start_month }
+allocation_change    { target_weights: {asset_class: weight} }   ← weights sum to 1
+settings.return_model  "gbm" | "student_t"   (+ t_df)
 ```
+
+Perturbations apply whenever their params are present, so one request can combine a
+crash with a SIP pause. `scenario_type` must match: a `market_stress` type without
+`market_stress` params is rejected. For allocation changes, return and volatility on
+both sides are derived from `app/simulation/assumptions.py`; the request's
+`expected_annual_return` / `annual_volatility` are ignored.
 
 ### `ScenarioResult`
 ```
@@ -53,10 +66,25 @@ assumptions           ← must always be populated
 terminal_percentiles  [ {p, value} ]
 median_path           [ value per month, length horizon_months + 1 ]
 total_contributed
-goal_outcomes         [ {goal_name, target_amount, success_probability, median_shortfall} ]
+goal_outcomes         [ {goal_name, target_amount, success_probability, median_shortfall,
+                          evaluated_at_month, shortfall_drivers, required_monthly_contribution} ]
 cash_runway_months
 explanation
 ```
+
+### Goal Failure Analysis (`shortfall_drivers`)
+
+Additive: the values sum exactly to `target − median outcome` (negative means a
+cushion). `baseline_plan` is the gap with no perturbation applied; each other key
+(`market_shock`, `contribution_change`, `income_shock`, `allocation_change`) is that
+perturbation's Shapley share, computed by re-running the simulation with each
+combination switched on and off against the same random market. Positive widens the
+shortfall, negative narrows it. `required_monthly_contribution` is the flat,
+uninterrupted SIP at which the median outcome reaches the target under the scenario's
+market conditions.
+
+Each goal is scored at its own `horizon_months`; goals beyond the simulation horizon
+are skipped and named in `assumptions.notes`.
 
 ## Conventions
 

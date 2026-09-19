@@ -65,8 +65,44 @@ about being simple:
   income shocks are modelled.
 - Market shocks are applied multiplicatively at a chosen month on top of the path.
 
-Known limitations to state in the report: normal returns understate tail risk, there is
-no modelled correlation between holdings yet, and inflation is not applied to goals.
+- `settings.return_model = "student_t"` swaps in fat-tailed monthly shocks with the same
+  volatility (truncated at 6 standard deviations).
+- A crash can recover over `recovery_months`; without it the loss is permanent. SIP
+  instalments made during the recovery benefit from it, so a crash that recovers
+  quickly can end *above* the no-crash baseline. That's the real "buying the dip"
+  effect, not a bug.
+- During an income shock, contributions are limited to income left after expenses and
+  EMIs, rather than being cut by a fixed ratio.
+- Every run with the same seed sees the same random market ("common random numbers"),
+  which is what makes the Goal Failure Analysis attribution meaningful.
+
+Known limitations to state in the report: returns are still i.i.d. month to month (no
+volatility clustering or regimes; Member 3's regime work could feed this), the
+per-asset-class assumptions are illustrative rather than estimated, holdings are not
+simulated individually, and inflation is not applied to goals.
+
+## Agent pipeline
+
+```
+question ──► LLM available? ──no──► router.py (keywords + argument parsing)
+                 │ yes                        │
+                 ▼                            ▼
+       Claude tool loop (≤6 turns)      execute tools
+                 │                            │
+                 ▼                            ▼
+   grounding.py: every figure in the    narrate.py: template
+   prose must match tool output ──fail──► explanation built
+                 │ pass                  only from tool output
+                 ▼
+          AgentResponse (answer + numbers + assumptions + evidence + caveats)
+```
+
+- The profile is injected server-side; tool schemas never include it.
+- Any API failure (rate limit, network, refusal, turn limit) degrades to the
+  deterministic path with a caveat, so the demo never hard-fails.
+- The grounding check tolerates honest rounding: "₹17 lakh" may be ±₹50,000 off,
+  "₹16.7 lakh" only ±₹5,000. It catches invented and mis-copied figures. It cannot
+  tell whether a correct figure was given the wrong label.
 
 ## Directory map
 

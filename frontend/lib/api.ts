@@ -8,8 +8,10 @@
 
 import type {
   AgentResponse,
+  ExtractedField,
   FinancialProfile,
   PortfolioMetrics,
+  ScenarioComparison,
   ScenarioResult,
 } from "./types";
 
@@ -44,6 +46,19 @@ export const api = {
     request<ScenarioResult>("/scenario/run", {
       method: "POST",
       body: JSON.stringify(payload),
+    }),
+
+  /** One scenario plus an automatically built baseline under identical assumptions. */
+  whatIf: (payload: Record<string, unknown>) =>
+    request<ScenarioComparison>("/scenario/whatif", {
+      method: "POST",
+      body: JSON.stringify(payload),
+    }),
+
+  confirmExtraction: (profile: FinancialProfile, fields: ExtractedField[]) =>
+    request<FinancialProfile>("/documents/confirm", {
+      method: "POST",
+      body: JSON.stringify({ profile, fields }),
     }),
 
   ask: (question: string, profile: FinancialProfile) =>

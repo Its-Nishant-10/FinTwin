@@ -55,7 +55,7 @@ make db                       # PostgreSQL on :5432 via Docker
 Verify your setup:
 
 ```bash
-make check                    # ruff + pytest — 26 tests should pass
+make check                    # ruff + pytest — 129 tests should pass
 curl localhost:8000/health
 ```
 
@@ -63,15 +63,32 @@ curl localhost:8000/health
 
 ## What already works
 
-A thin vertical slice runs end to end today, so nobody is blocked:
-
 - `GET  /profile/sample` — the demo twin (₹3L invested, ₹15k/month, ₹20L in 5 years)
-- `POST /portfolio/analyze` — allocation + concentration (HHI) are **implemented**
-- `POST /scenario/run` — Monte Carlo baseline and market-stress are **implemented**
-- `POST /agent/ask` — tool routing works via keyword rules; the LLM is not wired in yet
+- `POST /portfolio/analyze` — allocation + concentration (HHI)
+- **Simulation (Member 5) — complete.** `POST /scenario/run`, `/scenario/whatif`,
+  `/scenario/compare`: market crashes (with optional recovery), SIP changes and pauses,
+  income shocks, allocation changes, fat-tailed returns, Goal Failure Analysis and the
+  SIP needed to close a shortfall
+- **Agent (Member 4) — complete.** `POST /agent/ask`: Claude picks tools and explains
+  the results. Every figure in its answer is checked against tool output, and a
+  deterministic router takes over when no API key is set. `POST /documents/extract` and
+  `/documents/confirm`: statement → proposed fields → only user-confirmed values applied
 - The dashboard renders baseline vs. a 30% crash from live backend data
 
 Everything else is a typed stub marked `TODO(member-N)` in the module you own.
+
+### Try the agent
+
+```bash
+curl -s localhost:8000/profile/sample > /tmp/p.json
+curl -s -X POST localhost:8000/agent/ask -H 'Content-Type: application/json' \
+  -d "{\"question\": \"What if I stop my SIP for six months?\", \"profile\": $(cat /tmp/p.json)}" \
+  | python3 -c "import json,sys; print(json.load(sys.stdin)['answer']['summary'])"
+```
+
+Without `ANTHROPIC_API_KEY` this uses the keyword router and template answers. With a
+key, Claude (`claude-opus-5` by default, set `LLM_MODEL` to change it) routes and writes
+the answer.
 
 ---
 
