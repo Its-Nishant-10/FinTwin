@@ -55,7 +55,7 @@ make db                       # PostgreSQL on :5432 via Docker
 Verify your setup:
 
 ```bash
-make check                    # ruff + pytest — 141 tests should pass
+make check                    # ruff + pytest — 204 tests should pass
 curl localhost:8000/health
 ```
 
@@ -64,7 +64,8 @@ curl localhost:8000/health
 ## What already works
 
 - `GET  /profile/sample` — the demo twin (₹3L invested, ₹15k/month, ₹20L in 5 years)
-- `POST /portfolio/analyze` — allocation + concentration (HHI)
+- `POST /portfolio/analyze` — allocation + concentration (HHI); risk metrics and correlation are implemented but return `null` until price history is wired in
+- `POST /portfolio/health-score` — liquidity, debt burden, diversification, goal progress and market exposure, each with its raw `drivers`
 - **Simulation (Member 5) — complete.** `POST /scenario/run`, `/scenario/whatif`,
   `/scenario/compare`: market crashes (with optional recovery), SIP changes and pauses,
   income shocks, allocation changes, fat-tailed returns, Goal Failure Analysis and the
@@ -77,7 +78,7 @@ curl localhost:8000/health
   scorecard, concentration checks against your own limits, a Scenario Lab (comparison
   table, p10–p90 outcome band, Goal Failure Analysis), a what-if chat with an evidence
   panel showing which tools ran, and statement import with a per-value confirmation step
-- Health scores the backend hasn't built yet come back as `null` and are shown as "not
+- A health score that can't be computed honestly comes back as `null` and is shown as "not
   scored yet", never as a zero
 
 Everything else is a typed stub marked `TODO(member-N)` in the module you own.

@@ -43,14 +43,28 @@ def test_run_scenario(client):
     assert len(body["percentile_paths"][0]["values"]) == 61
 
 
-def test_health_score_leaves_unbuilt_dimensions_null(client):
+def test_health_score_scores_all_five_dimensions(client):
     profile = client.get("/profile/sample").json()
     response = client.post("/portfolio/health-score", json=profile)
     assert response.status_code == 200
     body = response.json()
     assert body["liquidity"] == pytest.approx(59.52, abs=0.01)
-    assert body["overall"] == pytest.approx(body["liquidity"])
+    assert body["debt_burden"] == pytest.approx(100.0)  # 11,000 EMI / 120,000 income = 9.2%
+    assert body["diversification"] is not None
+    assert body["goal_progress"] == pytest.approx(21.3)  # 426,000 corpus / 2,000,000 target
+    assert body["market_exposure"] == pytest.approx(100.0)  # 64.8% equity vs 75% limit
+    assert body["drivers"]["debt_burden_ratio"] == pytest.approx(11_000 / 120_000)
+
+
+def test_health_score_leaves_unscorable_dimensions_null(client):
+    profile = client.get("/profile/sample").json()
+    profile.update(holdings=[], goals=[], cashflow={**profile["cashflow"], "monthly_income": 0})
+    body = client.post("/portfolio/health-score", json=profile).json()
     assert body["debt_burden"] is None
+    assert body["diversification"] is None
+    assert body["goal_progress"] is None
+    assert body["market_exposure"] is None
+    assert body["overall"] == pytest.approx(body["liquidity"])
 
 
 def test_agent_ask_routes_to_scenario_tool(client):
