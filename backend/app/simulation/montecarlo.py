@@ -117,6 +117,14 @@ def summarize(paths: np.ndarray, percentiles: list[float]) -> dict[float, float]
     return {p: float(np.percentile(terminal, p)) for p in percentiles}
 
 
+def path_percentiles(paths: np.ndarray, percentiles: list[float]) -> dict[float, np.ndarray]:
+    """Percentiles of portfolio value at every month: one (horizon_months + 1) array each."""
+    if not percentiles:
+        return {}
+    values = np.percentile(paths, percentiles, axis=0)
+    return {p: values[i] for i, p in enumerate(percentiles)}
+
+
 def success_probability(paths: np.ndarray, target: float, month: int | None = None) -> float:
     """Share of paths at or above the target at `month` (default: the last month)."""
     column = paths[:, -1] if month is None else paths[:, month]

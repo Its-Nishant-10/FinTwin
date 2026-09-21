@@ -14,7 +14,14 @@ from app.schemas.agent import (
     ToolName,
     ToolResult,
 )
-from app.schemas.common import Assumptions, Evidence, Explanation, Money, Percentile
+from app.schemas.common import (
+    Assumptions,
+    Evidence,
+    Explanation,
+    Money,
+    Percentile,
+    PercentilePath,
+)
 from app.schemas.portfolio import (
     AllocationSlice,
     ConcentrationMetrics,
@@ -47,6 +54,7 @@ __all__ = [
     "Explanation",
     "Money",
     "Percentile",
+    "PercentilePath",
     "Cashflow",
     "FinancialProfile",
     "Goal",

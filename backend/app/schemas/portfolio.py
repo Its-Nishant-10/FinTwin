@@ -55,12 +55,15 @@ class HealthScore(BaseModel):
     profile, and `drivers` names the numbers that moved it.
     """
 
-    overall: float = Field(..., ge=0, le=100)
-    liquidity: float = Field(..., ge=0, le=100)
-    debt_burden: float = Field(..., ge=0, le=100)
-    diversification: float = Field(..., ge=0, le=100)
-    goal_progress: float = Field(..., ge=0, le=100)
-    market_exposure: float = Field(..., ge=0, le=100)
+    # None means "not scored yet", never 0 — a zero would read as the worst possible score.
+    overall: float | None = Field(
+        default=None, ge=0, le=100, description="Mean of the scored dimensions"
+    )
+    liquidity: float | None = Field(default=None, ge=0, le=100)
+    debt_burden: float | None = Field(default=None, ge=0, le=100)
+    diversification: float | None = Field(default=None, ge=0, le=100)
+    goal_progress: float | None = Field(default=None, ge=0, le=100)
+    market_exposure: float | None = Field(default=None, ge=0, le=100)
     drivers: dict[str, float] = Field(
         default_factory=dict, description="Raw inputs behind each score"
     )

@@ -19,6 +19,17 @@ class Percentile(BaseModel):
     value: Money
 
 
+class PercentilePath(BaseModel):
+    """One percentile of the outcome distribution, followed month by month.
+
+    Several of these make the p10-p90 band the UI shades around the median, so a
+    distribution is never drawn as a single line that reads like a prediction.
+    """
+
+    p: float = Field(..., ge=0, le=100, description="Percentile, e.g. 10, 50, 90")
+    values: list[Money] = Field(..., description="Value at every month, month 0 first")
+
+
 class Assumptions(BaseModel):
     """Every simulated number must carry the assumptions that produced it.
 

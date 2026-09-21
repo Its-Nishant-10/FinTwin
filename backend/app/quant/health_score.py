@@ -20,24 +20,27 @@ def liquidity_score(profile: FinancialProfile) -> tuple[float, dict[str, float]]
     return score, {"cash_runway_months": months, "target_months": target}
 
 
-def debt_burden_score(profile: FinancialProfile) -> tuple[float, dict[str, float]]:
-    """TODO(member-1): EMI-to-income ratio. <20% -> 100, >50% -> 0, linear between."""
-    return 0.0, {}
+def debt_burden_score(profile: FinancialProfile) -> tuple[float | None, dict[str, float]]:
+    """TODO(member-1): EMI-to-income ratio. <20% -> 100, >50% -> 0, linear between.
+
+    Return None until this is implemented — not 0.0, which would read as the worst score.
+    """
+    return None, {}
 
 
-def diversification_score(profile: FinancialProfile) -> tuple[float, dict[str, float]]:
+def diversification_score(profile: FinancialProfile) -> tuple[float | None, dict[str, float]]:
     """TODO(member-1): derive from analytics.concentration() — effective_holdings and HHI."""
-    return 0.0, {}
+    return None, {}
 
 
-def goal_progress_score(profile: FinancialProfile) -> tuple[float, dict[str, float]]:
+def goal_progress_score(profile: FinancialProfile) -> tuple[float | None, dict[str, float]]:
     """TODO(member-1): current corpus vs. required corpus, weighted by goal priority."""
-    return 0.0, {}
+    return None, {}
 
 
-def market_exposure_score(profile: FinancialProfile) -> tuple[float, dict[str, float]]:
+def market_exposure_score(profile: FinancialProfile) -> tuple[float | None, dict[str, float]]:
     """TODO(member-1): equity weight vs. the user's stated max_equity_pct and horizon."""
-    return 0.0, {}
+    return None, {}
 
 
 def compute(profile: FinancialProfile) -> HealthScore:
@@ -47,9 +50,11 @@ def compute(profile: FinancialProfile) -> HealthScore:
     goals, d4 = goal_progress_score(profile)
     exposure, d5 = market_exposure_score(profile)
 
-    dimensions = [liquidity, debt, diversification, goals, exposure]
+    # Average only what has been scored: an unimplemented dimension must not drag
+    # the overall score down as if it were a zero.
+    scored = [s for s in (liquidity, debt, diversification, goals, exposure) if s is not None]
     return HealthScore(
-        overall=sum(dimensions) / len(dimensions),
+        overall=sum(scored) / len(scored) if scored else None,
         liquidity=liquidity,
         debt_burden=debt,
         diversification=diversification,

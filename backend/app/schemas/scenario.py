@@ -11,7 +11,7 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.schemas.common import Assumptions, Explanation, Money, Percentile
+from app.schemas.common import Assumptions, Explanation, Money, Percentile, PercentilePath
 from app.schemas.profile import AssetClass, FinancialProfile
 
 
@@ -124,6 +124,10 @@ class ScenarioResult(BaseModel):
     terminal_percentiles: list[Percentile] = Field(default_factory=list)
     median_path: list[Money] = Field(
         default_factory=list, description="Month-by-month median value, length = horizon_months + 1"
+    )
+    percentile_paths: list[PercentilePath] = Field(
+        default_factory=list,
+        description="Month-by-month value at each requested percentile, for the range band",
     )
     total_contributed: Money = 0.0
     goal_outcomes: list[GoalOutcome] = Field(default_factory=list)

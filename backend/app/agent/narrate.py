@@ -153,8 +153,18 @@ def _portfolio(summary: dict[str, Any]) -> str:
 
 def _health(summary: dict[str, Any]) -> str:
     dims = ["liquidity", "debt_burden", "diversification", "goal_progress", "market_exposure"]
-    scores = ", ".join(f"{d.replace('_', ' ')} {summary[d]:g}" for d in dims)
-    return f"Overall financial health score: {summary['overall']:g} out of 100 ({scores})."
+    scored = {d: summary[d] for d in dims if summary.get(d) is not None}
+    if not scored:
+        return "None of the financial health dimensions could be scored yet."
+    scores = ", ".join(f"{d.replace('_', ' ')} {value:g}" for d, value in scored.items())
+    sentence = (
+        f"Overall financial health score: {summary['overall']:g} out of 100, "
+        f"based on {len(scored)} of {len(dims)} dimensions ({scores})."
+    )
+    pending = [d.replace("_", " ") for d in dims if d not in scored]
+    if pending:
+        sentence += f" Not scored yet: {', '.join(pending)}."
+    return sentence
 
 
 def _research(summary: dict[str, Any]) -> str:

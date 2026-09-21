@@ -39,6 +39,25 @@ def test_baseline_returns_percentiles_and_path(profile):
     assert result.assumptions.seed == 42
 
 
+def test_percentile_paths_bracket_the_median_path(profile):
+    result = engine.run(_crash(profile))
+    assert [path.p for path in result.percentile_paths] == [10, 25, 50, 75, 90]
+    by_p = {path.p: path.values for path in result.percentile_paths}
+    assert all(len(values) == 61 for values in by_p.values())
+    assert by_p[50] == pytest.approx(result.median_path)
+    assert all(lo <= mid <= hi for lo, mid, hi in zip(by_p[10], by_p[50], by_p[90], strict=True))
+    # The last point of every band is the terminal percentile reported alongside it.
+    for terminal in result.terminal_percentiles:
+        assert by_p[terminal.p][-1] == pytest.approx(terminal.value)
+
+
+def test_percentile_paths_follow_requested_percentiles(profile):
+    request = _request(profile).model_copy(
+        update={"settings": SimulationSettings(n_paths=200, seed=1, percentiles=[5, 95])}
+    )
+    assert [path.p for path in engine.run(request).percentile_paths] == [5, 95]
+
+
 def test_run_is_reproducible(profile):
     assert engine.run(_crash(profile)) == engine.run(_crash(profile))
 

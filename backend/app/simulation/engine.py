@@ -22,7 +22,7 @@ from math import factorial
 
 import numpy as np
 
-from app.schemas.common import Assumptions, Percentile
+from app.schemas.common import Assumptions, Percentile, PercentilePath
 from app.schemas.profile import Goal
 from app.schemas.scenario import (
     GoalOutcome,
@@ -347,6 +347,7 @@ def run(request: ScenarioRequest) -> ScenarioResult:
     goals = [g for g in request.profile.goals if g.horizon_months <= request.horizon_months]
     skipped = [g for g in request.profile.goals if g.horizon_months > request.horizon_months]
     percentiles = montecarlo.summarize(paths, request.settings.percentiles)
+    bands = montecarlo.path_percentiles(paths, request.settings.percentiles)
 
     return ScenarioResult(
         scenario_type=request.scenario_type,
@@ -362,6 +363,7 @@ def run(request: ScenarioRequest) -> ScenarioResult:
         ),
         terminal_percentiles=[Percentile(p=p, value=v) for p, v in sorted(percentiles.items())],
         median_path=np.median(paths, axis=0).tolist(),
+        percentile_paths=[PercentilePath(p=p, values=v.tolist()) for p, v in sorted(bands.items())],
         total_contributed=float(spec.schedule.sum()),
         goal_outcomes=_goal_outcomes(request, paths, factors, goals),
         cash_runway_months=_cash_runway_months(request),

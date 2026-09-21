@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 
 def test_health(client):
     response = client.get("/health")
@@ -35,7 +37,20 @@ def test_run_scenario(client):
         },
     )
     assert response.status_code == 200
-    assert len(response.json()["terminal_percentiles"]) == 5
+    body = response.json()
+    assert len(body["terminal_percentiles"]) == 5
+    assert len(body["percentile_paths"]) == 5
+    assert len(body["percentile_paths"][0]["values"]) == 61
+
+
+def test_health_score_leaves_unbuilt_dimensions_null(client):
+    profile = client.get("/profile/sample").json()
+    response = client.post("/portfolio/health-score", json=profile)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["liquidity"] == pytest.approx(59.52, abs=0.01)
+    assert body["overall"] == pytest.approx(body["liquidity"])
+    assert body["debt_burden"] is None
 
 
 def test_agent_ask_routes_to_scenario_tool(client):

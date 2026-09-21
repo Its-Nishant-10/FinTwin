@@ -55,7 +55,7 @@ make db                       # PostgreSQL on :5432 via Docker
 Verify your setup:
 
 ```bash
-make check                    # ruff + pytest — 129 tests should pass
+make check                    # ruff + pytest — 141 tests should pass
 curl localhost:8000/health
 ```
 
@@ -73,7 +73,12 @@ curl localhost:8000/health
   the results. Every figure in its answer is checked against tool output, and a
   deterministic router takes over when no API key is set. `POST /documents/extract` and
   `/documents/confirm`: statement → proposed fields → only user-confirmed values applied
-- The dashboard renders baseline vs. a 30% crash from live backend data
+- **Dashboard (Member 6) — built.** Digital-twin summary, allocation donut, health
+  scorecard, concentration checks against your own limits, a Scenario Lab (comparison
+  table, p10–p90 outcome band, Goal Failure Analysis), a what-if chat with an evidence
+  panel showing which tools ran, and statement import with a per-value confirmation step
+- Health scores the backend hasn't built yet come back as `null` and are shown as "not
+  scored yet", never as a zero
 
 Everything else is a typed stub marked `TODO(member-N)` in the module you own.
 

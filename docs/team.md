@@ -124,13 +124,25 @@ Still open:
 Two jobs. The benchmark is the one that ends up on everyone's resume — don't leave it
 to day 5.
 
-- [ ] Allocation donut, health scorecard, what-if chat panel, scenario comparison table
-- [ ] Shaded p10–p90 band on the scenario chart (median-only reads as a prediction)
-- [ ] Document upload + the confirmation step before values are used
+- [x] Allocation donut, health scorecard, what-if chat panel, scenario comparison table
+- [x] Shaded p10–p90 band on the scenario chart (median-only reads as a prediction);
+      needed `percentile_paths` on `ScenarioResult`
+- [x] Document upload + the confirmation step before values are used
+- [x] Assumption transparency panel beside every projection, and Goal Failure Analysis bars
 - [ ] Benchmark: start with `eval_simulation_reproducibility()` — it's cheap and it
       protects everyone else's work
 - [ ] 30–50 labelled questions in `evaluation/datasets/tool_selection_cases.json`
 - [ ] Write up failure cases and model limitations
+
+Frontend notes for the next person:
+- The health scorecard shows only what Member 1 has scored; as each dimension lands in
+  `quant/health_score.py` (returning a number instead of `None`) it appears with no UI change.
+- Risk metrics show "unavailable" until price history is wired in (Members 1 and 2).
+- Net worth and monthly surplus are summed in `frontend/lib/twin.ts` because pydantic
+  doesn't serialise `FinancialProfile`'s computed properties; expose them as
+  `@computed_field` if you'd rather the backend own them.
+- There is no `package-lock.json`, so CI's `npm ci || npm install` always falls back to
+  `npm install`. Commit a lockfile if you want reproducible installs.
 
 ---
 

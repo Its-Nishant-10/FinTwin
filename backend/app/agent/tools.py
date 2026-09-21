@@ -265,7 +265,7 @@ def _compute_health_score(profile: FinancialProfile) -> dict[str, Any]:
     dims = score.model_dump(exclude={"drivers"})
     return {
         "summary": {
-            **{k: round(v, 1) for k, v in dims.items()},
+            **{k: round(v, 1) if v is not None else None for k, v in dims.items()},
             "drivers": {k: round(v, 2) for k, v in score.drivers.items()},
         },
         "detail": score.model_dump(mode="json"),

@@ -61,10 +61,30 @@ export interface FinancialProfile {
   risk: RiskConstraints;
 }
 
+// ------------------------------------------------------------------ portfolio
+
 export interface AllocationSlice {
   label: string;
   value: number;
   weight: number;
+}
+
+export interface ConcentrationMetrics {
+  hhi: number;
+  effective_holdings: number;
+  top_holding_weight: number;
+  top_5_weight: number;
+  flags: string[];
+}
+
+/** null means "not enough price history", never zero. */
+export interface RiskMetrics {
+  annual_volatility?: number | null;
+  max_drawdown?: number | null;
+  sharpe_ratio?: number | null;
+  sortino_ratio?: number | null;
+  var_95?: number | null;
+  beta?: number | null;
 }
 
 export interface PortfolioMetrics {
@@ -72,14 +92,56 @@ export interface PortfolioMetrics {
   by_asset_class: AllocationSlice[];
   by_sector: AllocationSlice[];
   by_holding: AllocationSlice[];
-  concentration?: {
-    hhi: number;
-    effective_holdings: number;
-    top_holding_weight: number;
-    top_5_weight: number;
-    flags: string[];
-  } | null;
-  risk: Record<string, number | null>;
+  concentration?: ConcentrationMetrics | null;
+  risk: RiskMetrics;
+  correlation_matrix?: Record<string, Record<string, number>>;
+  dominant_asset_class?: AssetClass | null;
+}
+
+/** A dimension that is null has not been scored yet; it is not a zero. */
+export interface HealthScore {
+  overall: number | null;
+  liquidity: number | null;
+  debt_burden: number | null;
+  diversification: number | null;
+  goal_progress: number | null;
+  market_exposure: number | null;
+  drivers: Record<string, number>;
+}
+
+// ------------------------------------------------------------------- scenario
+
+export type ScenarioType =
+  | "baseline"
+  | "market_stress"
+  | "income_shock"
+  | "contribution_change"
+  | "sip_interruption"
+  | "allocation_change";
+
+export interface SimulationSettings {
+  n_paths?: number;
+  seed?: number | null;
+  percentiles?: number[];
+  return_model?: "gbm" | "student_t";
+  t_df?: number;
+}
+
+export interface ScenarioRequest {
+  profile: FinancialProfile;
+  scenario_type?: ScenarioType;
+  horizon_months: number;
+  expected_annual_return?: number;
+  annual_volatility?: number;
+  settings?: SimulationSettings;
+  market_stress?: { shock_pct: number; shock_at_month?: number; recovery_months?: number | null };
+  income_shock?: { income_multiplier?: number; duration_months: number; start_month?: number };
+  contribution_change?: {
+    new_monthly_contribution?: number | null;
+    pause_months?: number;
+    pause_start_month?: number;
+  };
+  allocation_change?: { target_weights: Partial<Record<AssetClass, number>> };
 }
 
 export interface Assumptions {
@@ -87,29 +149,46 @@ export interface Assumptions {
   expected_annual_return: number;
   annual_volatility: number;
   monthly_contribution: number;
+  inflation?: number;
   n_paths: number;
   seed?: number | null;
   notes: string[];
 }
 
+export interface Percentile {
+  p: number;
+  value: number;
+}
+
+/** One percentile followed month by month — the edges of the range band. */
+export interface PercentilePath {
+  p: number;
+  values: number[];
+}
+
+export interface GoalOutcome {
+  goal_name: string;
+  target_amount: number;
+  success_probability: number;
+  median_shortfall: number;
+  evaluated_at_month?: number | null;
+  /** Goal Failure Analysis: additive shares of (target - median outcome). */
+  shortfall_drivers: Record<string, number>;
+  required_monthly_contribution?: number | null;
+}
+
 export interface ScenarioResult {
-  scenario_type: string;
+  scenario_type: ScenarioType | string;
   label: string;
   assumptions: Assumptions;
-  terminal_percentiles: { p: number; value: number }[];
+  terminal_percentiles: Percentile[];
   median_path: number[];
+  /** Optional so the UI degrades to median-only against an older backend. */
+  percentile_paths?: PercentilePath[];
   total_contributed: number;
-  goal_outcomes: {
-    goal_name: string;
-    target_amount: number;
-    success_probability: number;
-    median_shortfall: number;
-    evaluated_at_month?: number | null;
-    /** Goal Failure Analysis: additive shares of (target - median outcome). */
-    shortfall_drivers: Record<string, number>;
-    required_monthly_contribution?: number | null;
-  }[];
+  goal_outcomes: GoalOutcome[];
   cash_runway_months?: number | null;
+  explanation?: Explanation | null;
 }
 
 export interface ScenarioComparison {
@@ -118,6 +197,8 @@ export interface ScenarioComparison {
   deltas: Record<string, number>;
 }
 
+// ---------------------------------------------------------------------- agent
+
 export interface Evidence {
   claim: string;
   source: string;
@@ -125,25 +206,38 @@ export interface Evidence {
   confidence?: number | null;
 }
 
+export interface Explanation {
+  summary: string;
+  assumptions?: Assumptions | null;
+  numbers: Record<string, unknown>;
+  evidence: Evidence[];
+  caveats: string[];
+}
+
+export interface ToolCall {
+  tool: string;
+  arguments: Record<string, unknown>;
+  reasoning?: string | null;
+}
+
+export interface ToolResult {
+  tool: string;
+  ok: boolean;
+  /** { summary, detail } — detail holds the full typed result for charts. */
+  output: Record<string, unknown>;
+  error?: string | null;
+  latency_ms?: number | null;
+}
+
 export interface AgentResponse {
-  answer: {
-    summary: string;
-    assumptions?: Assumptions | null;
-    numbers: Record<string, unknown>;
-    evidence: Evidence[];
-    caveats: string[];
-  };
-  tool_calls: { tool: string; arguments: Record<string, unknown>; reasoning?: string | null }[];
-  tool_results: {
-    tool: string;
-    ok: boolean;
-    /** { summary, detail } — detail holds the full typed result for charts. */
-    output: Record<string, unknown>;
-    error?: string | null;
-  }[];
+  answer: Explanation;
+  tool_calls: ToolCall[];
+  tool_results: ToolResult[];
   evidence: Evidence[];
   latency_ms?: number | null;
 }
+
+// ----------------------------------------------------------------- documents
 
 export interface ExtractedField {
   field: string;

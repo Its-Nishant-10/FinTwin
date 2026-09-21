@@ -117,6 +117,28 @@ def test_contribution_schedule_length_is_validated():
         montecarlo.simulate_paths(**BASE, contribution_schedule=np.zeros(5))
 
 
+def test_path_percentiles_are_ordered_and_start_together():
+    paths = montecarlo.simulate_paths(**BASE)
+    bands = montecarlo.path_percentiles(paths, [10, 50, 90])
+    assert set(bands) == {10, 50, 90}
+    assert all(len(values) == 61 for values in bands.values())
+    # Everyone starts from today's portfolio, so the band opens from a single point.
+    assert bands[10][0] == bands[50][0] == bands[90][0] == 300_000
+    assert np.all(bands[10] <= bands[50]) and np.all(bands[50] <= bands[90])
+
+
+def test_path_percentiles_agree_with_terminal_summary():
+    paths = montecarlo.simulate_paths(**BASE)
+    terminal = montecarlo.summarize(paths, [10, 50, 90])
+    bands = montecarlo.path_percentiles(paths, [10, 50, 90])
+    for p, value in terminal.items():
+        assert bands[p][-1] == pytest.approx(value)
+
+
+def test_path_percentiles_with_none_requested_is_empty():
+    assert montecarlo.path_percentiles(montecarlo.simulate_paths(**BASE), []) == {}
+
+
 def test_success_probability_at_month():
     paths = np.array([[0, 5, 10], [0, 15, 20]], dtype=float)
     assert montecarlo.success_probability(paths, 10) == 1.0

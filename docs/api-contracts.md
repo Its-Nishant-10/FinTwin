@@ -15,7 +15,7 @@ same PR as any schema change.
 | GET | `/profile/{user_id}` | → `FinancialProfile` | 2 | ✅ in-memory |
 | PUT | `/profile/{user_id}` | `FinancialProfile` → `FinancialProfile` | 2 | ✅ in-memory |
 | POST | `/portfolio/analyze` | `FinancialProfile` → `PortfolioMetrics` | 1 | 🟡 allocation + concentration done |
-| POST | `/portfolio/health-score` | `FinancialProfile` → `HealthScore` | 1 | 🟡 liquidity only |
+| POST | `/portfolio/health-score` | `FinancialProfile` → `HealthScore` | 1 | 🟡 liquidity only; unbuilt dimensions are `null`, `overall` averages the scored ones |
 | POST | `/scenario/run` | `ScenarioRequest` → `ScenarioResult` | 5 | ✅ |
 | POST | `/scenario/whatif` | `ScenarioRequest` → `ScenarioComparison` (auto baseline) | 5 | ✅ |
 | POST | `/scenario/compare` | `ScenarioRequest[]` → `ScenarioComparison` | 5 | ✅ |
@@ -65,6 +65,8 @@ scenario_type, label
 assumptions           ← must always be populated
 terminal_percentiles  [ {p, value} ]
 median_path           [ value per month, length horizon_months + 1 ]
+percentile_paths      [ {p, values: [value per month]} ]   ← one per settings.percentiles;
+                        the UI shades the outermost pair (p10–p90) around the median
 total_contributed
 goal_outcomes         [ {goal_name, target_amount, success_probability, median_shortfall,
                           evaluated_at_month, shortfall_drivers, required_monthly_contribution} ]
