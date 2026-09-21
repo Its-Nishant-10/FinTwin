@@ -14,8 +14,8 @@ same PR as any schema change.
 | GET | `/profile/sample` | → `FinancialProfile` | 2 | ✅ |
 | GET | `/profile/{user_id}` | → `FinancialProfile` | 2 | ✅ in-memory |
 | PUT | `/profile/{user_id}` | `FinancialProfile` → `FinancialProfile` | 2 | ✅ in-memory |
-| POST | `/portfolio/analyze` | `FinancialProfile` → `PortfolioMetrics` | 1 | 🟡 allocation + concentration done |
-| POST | `/portfolio/health-score` | `FinancialProfile` → `HealthScore` | 1 | 🟡 liquidity only; unbuilt dimensions are `null`, `overall` averages the scored ones |
+| POST | `/portfolio/analyze` | `FinancialProfile` → `PortfolioMetrics` | 1 | 🟡 allocation + concentration done; risk metrics and correlation are `null`/`{}` until price history is wired in |
+| POST | `/portfolio/health-score` | `FinancialProfile` → `HealthScore` | 1 | ✅ all five dimensions; one that can't be scored honestly (e.g. no income) is `null`, `overall` averages the scored ones |
 | POST | `/scenario/run` | `ScenarioRequest` → `ScenarioResult` | 5 | ✅ |
 | POST | `/scenario/whatif` | `ScenarioRequest` → `ScenarioComparison` (auto baseline) | 5 | ✅ |
 | POST | `/scenario/compare` | `ScenarioRequest[]` → `ScenarioComparison` | 5 | ✅ |
