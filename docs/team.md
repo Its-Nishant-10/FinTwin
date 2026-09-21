@@ -24,10 +24,15 @@ Find your work: `grep -rn "TODO(member-N)" backend/ frontend/`
 Already done as a reference: `allocation()` and `concentration()` (HHI), with tests.
 Follow that shape — pure functions, no I/O, exact numbers, hand-checked tests.
 
-- [ ] `risk_metrics()` — volatility, max drawdown, Sharpe, Sortino, VaR, beta
-- [ ] `correlation_matrix()` — pairwise correlation, needs ≥60 overlapping observations
-- [ ] Health scorecard: debt burden, diversification, goal progress, market exposure
-- [ ] A hand-checked test for every one of them
+- [x] `risk_metrics()` — volatility, max drawdown, Sharpe, Sortino, VaR, beta
+- [x] `correlation_matrix()` — pairwise correlation, needs ≥60 overlapping observations
+- [x] Health scorecard: debt burden, diversification, goal progress, market exposure
+- [x] A hand-checked test for every one of them
+
+**Status: complete**, pending real price history. Beta needs a `^NSEI` benchmark column in
+the price DataFrame; risk-free rate is assumed 0; goal priority 1 is weighted highest.
+Until Member 2's `market.get_price_history()` is wired into `analytics.analyze()`,
+`/portfolio/analyze` returns `null` risk metrics and an empty correlation matrix.
 
 **Blocked on:** Member 2's `market.get_price_history()`. Until it lands, write your
 functions to take a DataFrame argument and test them with a fixture.
